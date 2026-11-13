@@ -1,0 +1,543 @@
+<div class="app-container">
+  <header class="app-header">
+    <div class="header-content">
+      <div class="logo-placeholder header-home" (click)="goHome()" title="Volver al inicio">SENA</div>
+      <div class="header-home" (click)="goHome()" title="Volver al inicio">
+        <h1>Generador de Formatos SENA</h1>
+        <p class="subtitle" *ngIf="activeMode === 'select'">Seleccione el tipo de formato a generar</p>
+        <p class="subtitle" *ngIf="activeMode === 'compromiso'">Compromiso del Aprendiz y Tratamiento de Datos</p>
+        <p class="subtitle" *ngIf="activeMode === 'seguimiento'">Seguimiento de Etapa Productiva</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Mode Selection -->
+    <section class="mode-section" *ngIf="activeMode === 'select'">
+      <h2 class="mode-title">Seleccione el tipo de formato</h2>
+      <p class="mode-subtitle">Ambas opciones utilizan el mismo archivo Excel de estudiantes</p>
+      <div class="mode-cards">
+        <div class="mode-card" (click)="selectMode('compromiso')">
+          <div class="mode-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <h3>Compromiso y Tratamiento</h3>
+          <p>Genera el Compromiso del Aprendiz y la Autorizacion de Tratamiento de Datos Personales para cada estudiante.</p>
+          <span class="mode-badge">2 documentos por estudiante</span>
+        </div>
+        <div class="mode-card mode-card-seg" (click)="selectMode('seguimiento')">
+          <div class="mode-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+              <path d="M9 14l2 2 4-4"/>
+            </svg>
+          </div>
+          <h3>Seguimiento de Etapa Productiva</h3>
+          <p>Genera el formato de seguimiento para aprendices en etapa productiva con planeacion, seguimiento y evaluacion.</p>
+          <span class="mode-badge mode-badge-seg">Proximamente</span>
+        </div>
+      </div>
+      <button class="template-btn" (click)="downloadTemplate()" style="margin-top: 24px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Descargar plantilla en blanco
+      </button>
+    </section>
+
+    <!-- Upload Section -->
+    <section class="upload-section" *ngIf="activeMode !== 'select' && !estudiantes.length">
+      <div class="upload-card">
+        <div class="upload-icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <polyline points="9 15 12 12 15 15"/>
+          </svg>
+        </div>
+        <h2>Cargar archivo Excel</h2>
+        <p *ngIf="activeMode === 'compromiso'">Seleccione el archivo .xlsx para generar Compromiso y Tratamiento</p>
+        <p *ngIf="activeMode === 'seguimiento'">Seleccione el archivo .xlsx para generar Seguimiento de Etapa Productiva</p>
+        <label class="upload-btn">
+          <input type="file" accept=".xlsx,.xls" (change)="onFileChange($event)" hidden>
+          Seleccionar archivo
+        </label>
+        <p class="upload-hint">Formatos aceptados: .xlsx, .xls</p>
+        <button class="template-btn" (click)="downloadTemplate()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Descargar plantilla en blanco
+        </button>
+        <button class="template-btn" (click)="activeMode = 'select'" style="margin-left: 8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Volver
+        </button>
+
+        <div class="error-box" *ngIf="errorMessage">
+          <div class="error-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <strong>Archivo no compatible</strong>
+            <button class="error-close" (click)="errorMessage = ''">&times;</button>
+          </div>
+          <p class="error-text">{{ errorMessage }}</p>
+        </div>
+      </div>
+
+      <div class="loading-overlay" *ngIf="loading">
+        <div class="spinner"></div>
+        <p>Cargando datos...</p>
+      </div>
+    </section>
+
+    <!-- Seguimiento Groups View -->
+    <section class="data-section" *ngIf="estudiantes.length && activeMode === 'seguimiento'">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <span class="file-badge">{{ fileName }}</span>
+          <span class="count-badge">{{ estudiantes.length }} estudiantes</span>
+          <span class="count-badge" style="background:#dbeafe;color:#1e40af;">{{ grupos.length }} grupo{{ grupos.length !== 1 ? 's' : '' }}</span>
+          <span class="selected-badge" *ngIf="gruposSinAsignar.length">{{ gruposSinAsignar.length }} sin grupo</span>
+          <span class="selected-badge" *ngIf="selectedGruposCount > 0" style="background:#dcfce7;color:#166534;">{{ selectedGruposCount }} seleccionado{{ selectedGruposCount !== 1 ? 's' : '' }}</span>
+          <button class="btn btn-secondary" (click)="toggleAllGrupos()" [disabled]="editMode" style="font-size:11px;padding:3px 10px;">Sel. todos</button>
+        </div>
+        <div class="toolbar-right">
+          <button class="btn" [ngClass]="editMode ? 'btn-confirm' : 'btn-edit'" (click)="toggleEditModeSeg()">{{ editMode ? 'Confirmar cambios' : 'Editar datos' }}</button>
+          <button class="btn btn-primary" [disabled]="selectedGruposCount === 0 || editMode || generating" (click)="generateSeguimiento()">
+            Generar formatos ({{ selectedGruposCount }})
+          </button>
+          <button class="btn btn-secondary" (click)="clearData()">Nuevo archivo</button>
+        </div>
+      </div>
+      <div class="template-picker">
+        <div class="template-option" [class.template-active]="!customTemplateName">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div class="template-info">
+            <strong>{{ customTemplateName ? 'Plantilla predeterminada' : 'Usando plantilla predeterminada' }}</strong>
+            <span>Formato base proporcionado por la aplicacion</span>
+          </div>
+          <button class="btn btn-secondary btn-sm" *ngIf="customTemplateName" (click)="removeCustomTemplate()">Usar esta</button>
+        </div>
+        <div class="template-divider">o</div>
+        <div class="template-option" [class.template-active]="customTemplateName">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div class="template-info">
+            <strong *ngIf="!customTemplateName">Subir mi propia plantilla</strong>
+            <strong *ngIf="customTemplateName">{{ customTemplateName }}</strong>
+            <span *ngIf="!customTemplateName">Debe tener la misma estructura de celdas que el formato base</span>
+            <span *ngIf="customTemplateName">Plantilla personalizada cargada</span>
+          </div>
+          <label class="btn btn-secondary btn-sm" *ngIf="!customTemplateName">
+            <input type="file" accept=".xlsx" (change)="onCustomTemplateChange($event)" hidden>
+            Cargar .xlsx
+          </label>
+          <button class="btn btn-secondary btn-sm" *ngIf="customTemplateName" (click)="removeCustomTemplate()">Quitar</button>
+        </div>
+      </div>
+      <div class="grupo-limit-hint">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Cada grupo admite maximo 5 aprendices. La aplicacion llenara las celdas programadas (nombres, documentos, firmas, etc.) sin importar si ya tienen datos. Para reasignar, active "Editar datos" y cambie el numero de grupo.
+      </div>
+      <div class="grupos-container">
+        <div class="grupo-card" *ngFor="let grupo of grupos" [class.grupo-card-over]="grupo.estudiantes.length > 5" [class.grupo-card-selected]="grupo.selected">
+          <div class="grupo-header">
+            <div class="grupo-title">
+              <input type="checkbox" [(ngModel)]="grupo.selected" class="grupo-chk" [disabled]="editMode">
+              <span class="grupo-badge">Grupo {{ grupo.numero }}</span>
+              <span class="grupo-count">{{ grupo.estudiantes.length }} / 5</span>
+              <div class="grupo-fill-bar"><div class="grupo-fill" [style.width.%]="(grupo.estudiantes.length / 5) * 100" [class.fill-ok]="grupo.estudiantes.length === 5" [class.fill-partial]="grupo.estudiantes.length < 5" [class.fill-over]="grupo.estudiantes.length > 5"></div></div>
+            </div>
+            <span class="grupo-warning" *ngIf="grupo.estudiantes.length > 5">Excede limite</span>
+            <span class="grupo-incomplete" *ngIf="grupo.estudiantes.length < 5">Faltan {{ 5 - grupo.estudiantes.length }}</span>
+            <span class="grupo-ok" *ngIf="grupo.estudiantes.length === 5">Completo</span>
+          </div>
+          <div class="grupo-table-wrap"><table class="grupo-table"><thead><tr>
+            <th *ngIf="editMode" class="col-grupo">Grupo</th><th>#</th><th>Nombre</th><th>Documento</th><th>Tipo</th><th>Telefono</th><th>Correo</th><th>Direccion</th>
+          </tr></thead><tbody>
+            <tr *ngFor="let est of grupo.estudiantes; let j = index" [class.editing]="editMode">
+              <td *ngIf="editMode"><input class="in in-grupo" [(ngModel)]="est.grupo" maxlength="3"></td>
+              <td class="cell-sm">{{ j + 1 }}</td>
+              <td><span *ngIf="!editMode" class="cell-name">{{ est.nombre }}</span><input *ngIf="editMode" class="in" [(ngModel)]="est.nombre" style="min-width:140px"></td>
+              <td><span *ngIf="!editMode">{{ est.documento }}</span><input *ngIf="editMode" class="in in-sm" [(ngModel)]="est.documento"></td>
+              <td><span *ngIf="!editMode" class="badge" [attr.data-t]="getDocTypeLabel(est)">{{ getDocTypeLabel(est) }}</span><div *ngIf="editMode" class="tsel"><button *ngFor="let dt of docTypes" class="tbtn" [class.on]="getActiveDocType(est)===dt" (click)="setDocType(est, dt)">{{dt}}</button></div></td>
+              <td><span *ngIf="!editMode" class="cell-sm">{{ est.telefono1 }}</span><input *ngIf="editMode" class="in in-xs" [(ngModel)]="est.telefono1"></td>
+              <td><span *ngIf="!editMode" class="cell-sm">{{ est.correo }}</span><input *ngIf="editMode" class="in" [(ngModel)]="est.correo"></td>
+              <td><span *ngIf="!editMode" class="cell-sm">{{ est.direccion }}</span><input *ngIf="editMode" class="in in-sm" [(ngModel)]="est.direccion"></td>
+            </tr>
+          </tbody></table></div>
+        </div>
+        <div class="grupo-card grupo-card-sin" *ngIf="gruposSinAsignar.length">
+          <div class="grupo-header">
+            <div class="grupo-title"><span class="grupo-badge grupo-badge-sin">Sin grupo</span><span class="grupo-count">{{ gruposSinAsignar.length }} sin asignar</span></div>
+          </div>
+          <div class="grupo-table-wrap"><table class="grupo-table"><thead><tr>
+            <th *ngIf="editMode" class="col-grupo">Grupo</th><th>#</th><th>Nombre</th><th>Documento</th><th>Tipo</th><th>Telefono</th><th>Correo</th><th>Direccion</th>
+          </tr></thead><tbody>
+            <tr *ngFor="let est of gruposSinAsignar; let j = index" [class.editing]="editMode">
+              <td *ngIf="editMode"><input class="in in-grupo" [(ngModel)]="est.grupo" maxlength="3" placeholder="N"></td>
+              <td class="cell-sm">{{ j + 1 }}</td>
+              <td><span *ngIf="!editMode" class="cell-name">{{ est.nombre }}</span><input *ngIf="editMode" class="in" [(ngModel)]="est.nombre" style="min-width:140px"></td>
+              <td><span *ngIf="!editMode">{{ est.documento }}</span><input *ngIf="editMode" class="in in-sm" [(ngModel)]="est.documento"></td>
+              <td><span *ngIf="!editMode" class="badge" [attr.data-t]="getDocTypeLabel(est)">{{ getDocTypeLabel(est) }}</span><div *ngIf="editMode" class="tsel"><button *ngFor="let dt of docTypes" class="tbtn" [class.on]="getActiveDocType(est)===dt" (click)="setDocType(est, dt)">{{dt}}</button></div></td>
+              <td><span *ngIf="!editMode" class="cell-sm">{{ est.telefono1 }}</span><input *ngIf="editMode" class="in in-xs" [(ngModel)]="est.telefono1"></td>
+              <td><span *ngIf="!editMode" class="cell-sm">{{ est.correo }}</span><input *ngIf="editMode" class="in" [(ngModel)]="est.correo"></td>
+              <td><span *ngIf="!editMode" class="cell-sm">{{ est.direccion }}</span><input *ngIf="editMode" class="in in-sm" [(ngModel)]="est.direccion"></td>
+            </tr>
+          </tbody></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Data Section (Compromiso y Tratamiento) -->
+    <section class="data-section" *ngIf="estudiantes.length && activeMode === 'compromiso'">
+      <!-- Toolbar -->
+      <div class="toolbar" id="tour-toolbar">
+        <div class="toolbar-left">
+          <span class="file-badge">{{ fileName }}</span>
+          <span class="count-badge">{{ estudiantes.length }} estudiantes</span>
+          <span class="selected-badge" *ngIf="selectedCount > 0">{{ selectedCount }} seleccionados</span>
+        </div>
+        <div class="toolbar-right">
+          <input type="text" class="search-input" placeholder="Buscar..." [(ngModel)]="searchTerm" id="tour-search">
+          <button class="btn" [ngClass]="editMode ? 'btn-confirm' : 'btn-edit'" (click)="toggleEditMode()" id="tour-edit-btn">
+            {{ editMode ? 'Confirmar cambios' : 'Editar datos' }}
+          </button>
+          <button class="btn btn-primary" [disabled]="selectedCount === 0 || generating || editMode" (click)="downloadSelected()" id="tour-generate-btn">
+            Generar seleccionados
+          </button>
+          <button class="btn btn-secondary" (click)="clearData()">Nuevo archivo</button>
+          <button class="btn btn-secondary" (click)="startTour()" title="Ver tutorial">?</button>
+        </div>
+      </div>
+
+      <!-- General Fields Bar -->
+      <div class="general-bar" id="tour-general">
+        <div class="general-field" *ngIf="!sinFecha">
+          <label>Día</label>
+          <input type="text" [(ngModel)]="generalDia" [readonly]="!editMode" class="gen-input gen-sm">
+        </div>
+        <div class="general-field" *ngIf="!sinFecha">
+          <label>Mes</label>
+          <input type="text" [(ngModel)]="generalMes" [readonly]="!editMode" class="gen-input gen-sm">
+        </div>
+        <div class="general-field" *ngIf="!sinFecha">
+          <label>Año</label>
+          <input type="text" [(ngModel)]="generalAnio" [readonly]="!editMode" class="gen-input gen-sm">
+        </div>
+        <button class="toggle-chip" [class.active]="sinFecha" (click)="toggleSinFecha()" [disabled]="!editMode">
+          {{ sinFecha ? 'Sin fecha' : 'Sin fecha' }}
+        </button>
+        <div class="general-sep"></div>
+        <div class="general-field" *ngIf="fichaOriginalUnica && !sinFicha">
+          <label>Ficha</label>
+          <input type="text" [(ngModel)]="generalFicha" [readonly]="!editMode" class="gen-input gen-md">
+        </div>
+        <button class="toggle-chip" *ngIf="fichaOriginalUnica" [class.active]="sinFicha" (click)="toggleSinFicha()" [disabled]="!editMode">
+          Sin ficha
+        </button>
+        <div class="general-field" *ngIf="programaUnico">
+          <label>Programa</label>
+          <input type="text" [(ngModel)]="generalPrograma" [readonly]="!editMode" class="gen-input gen-lg">
+        </div>
+        <div class="general-sep"></div>
+        <div class="general-field" *ngIf="regionalUnica">
+          <label>Regional</label>
+          <input type="text" [(ngModel)]="generalRegional" [readonly]="!editMode" class="gen-input gen-md">
+        </div>
+        <div class="general-field" *ngIf="ciudadUnica">
+          <label>Ciudad/Municipio</label>
+          <input type="text" [(ngModel)]="generalCiudad" [readonly]="!editMode" class="gen-input gen-md">
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-chk"><input type="checkbox" [checked]="allSelected" (change)="toggleAll()" id="tour-select-all"></th>
+              <th>Nombre</th>
+              <th>Documento</th>
+              <th>Tipo</th>
+              <th>Acudiente</th>
+              <th>T. Padre</th>
+              <th>Doc. Acud.</th>
+              <th>Lugar Doc.</th>
+              <th *ngIf="!fichaOriginalUnica && !sinFicha">Ficha</th>
+              <th *ngIf="!programaUnico">Programa</th>
+              <th>Correo</th>
+              <th>Dirección</th>
+              <th>Tel. 1</th>
+              <th>Tel. 2</th>
+              <th *ngIf="!regionalUnica">Regional</th>
+              <th *ngIf="!ciudadUnica">Ciudad</th>
+              <th class="col-act" *ngIf="!editMode">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let est of filteredEstudiantes; let i = index" [class.selected]="est.selected" [class.editing]="editMode">
+              <td class="col-chk"><input type="checkbox" [(ngModel)]="est.selected"></td>
+
+              <td>
+                <span *ngIf="!editMode" class="cell-name">{{ est.nombre }}</span>
+                <input *ngIf="editMode" class="in" [(ngModel)]="est.nombre" style="min-width:150px">
+              </td>
+
+              <td>
+                <span *ngIf="!editMode">{{ est.documento }}</span>
+                <input *ngIf="editMode" class="in in-sm" [(ngModel)]="est.documento">
+              </td>
+
+              <td>
+                <span *ngIf="!editMode" class="badge" [attr.data-t]="getDocTypeLabel(est)">{{ getDocTypeLabel(est) }}</span>
+                <div *ngIf="editMode" class="tsel">
+                  <button *ngFor="let dt of docTypes" class="tbtn" [class.on]="getActiveDocType(est)===dt" (click)="setDocType(est, dt)">{{dt}}</button>
+                </div>
+              </td>
+
+              <td>
+                <span *ngIf="!editMode">{{ est.acudiente }}</span>
+                <input *ngIf="editMode" class="in" [(ngModel)]="est.acudiente" style="min-width:140px">
+              </td>
+
+              <td>
+                <span *ngIf="!editMode" class="badge" [attr.data-t]="est.tipopadre||'N/A'">{{ est.tipopadre || 'N/A' }}</span>
+                <div *ngIf="editMode" class="tsel">
+                  <button *ngFor="let dt of docTypes" class="tbtn" [class.on]="est.tipopadre===dt" (click)="setPadreDocType(est, dt)">{{dt}}</button>
+                </div>
+              </td>
+
+              <td>
+                <span *ngIf="!editMode">{{ est.docacudiente }}</span>
+                <input *ngIf="editMode" class="in in-sm" [(ngModel)]="est.docacudiente">
+              </td>
+
+              <td>
+                <span *ngIf="!editMode">{{ est.lugardoc }}</span>
+                <input *ngIf="editMode" class="in in-sm" [(ngModel)]="est.lugardoc">
+              </td>
+
+              <td *ngIf="!fichaOriginalUnica && !sinFicha">
+                <span *ngIf="!editMode">{{ est.ficha }}</span>
+                <input *ngIf="editMode" class="in in-xs" [(ngModel)]="est.ficha">
+              </td>
+
+              <td *ngIf="!programaUnico">
+                <span *ngIf="!editMode">{{ est.programa }}</span>
+                <input *ngIf="editMode" class="in in-sm" [(ngModel)]="est.programa">
+              </td>
+
+              <td>
+                <span *ngIf="!editMode" class="cell-sm">{{ est.correo }}</span>
+                <input *ngIf="editMode" class="in" [(ngModel)]="est.correo">
+              </td>
+
+              <td>
+                <span *ngIf="!editMode">{{ est.direccion }}</span>
+                <input *ngIf="editMode" class="in in-sm" [(ngModel)]="est.direccion">
+              </td>
+
+              <td>
+                <span *ngIf="!editMode">{{ est.telefono1 }}</span>
+                <input *ngIf="editMode" class="in in-xs" [(ngModel)]="est.telefono1">
+              </td>
+
+              <td>
+                <span *ngIf="!editMode">{{ est.telefono2 }}</span>
+                <input *ngIf="editMode" class="in in-xs" [(ngModel)]="est.telefono2">
+              </td>
+
+              <td *ngIf="!regionalUnica">
+                <span *ngIf="!editMode">{{ est.regional }}</span>
+                <input *ngIf="editMode" class="in in-sm" [(ngModel)]="est.regional">
+              </td>
+
+              <td *ngIf="!ciudadUnica">
+                <span *ngIf="!editMode">{{ est.ciudadmunicipio }}</span>
+                <input *ngIf="editMode" class="in in-sm" [(ngModel)]="est.ciudadmunicipio">
+              </td>
+
+              <td class="col-act" *ngIf="!editMode" [id]="i === 0 ? 'tour-actions' : null">
+                <div class="acts">
+                  <button class="abtn" title="Compromiso" (click)="downloadOne(est, 'compromiso')" [disabled]="generating">C</button>
+                  <button class="abtn" title="Tratamiento" (click)="downloadOne(est, 'tratamiento')" [disabled]="generating">T</button>
+                  <button class="abtn abtn-all" title="Ambos" (click)="downloadOne(est, 'ambos')" [disabled]="generating">2</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="no-results" *ngIf="filteredEstudiantes.length === 0 && searchTerm">
+        No se encontraron resultados para "{{ searchTerm }}"
+      </div>
+    </section>
+  </main>
+
+  <!-- Privacy Banner -->
+  <div class="privacy-banner" *ngIf="!privacyAccepted">
+    <div class="privacy-banner-content">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <p>Esta herramienta procesa datos personales exclusivamente en su navegador. Ninguna informacion se transmite ni almacena en servidores externos.</p>
+      <button class="privacy-link" (click)="showPrivacyModal = true">Politica de Proteccion de Datos</button>
+      <button class="privacy-accept" (click)="privacyAccepted = true">Aceptar</button>
+    </div>
+  </div>
+
+  <!-- Privacy Footer Link -->
+  <footer class="app-footer">
+    <button class="footer-link" (click)="showPrivacyModal = true">Proteccion de Datos Personales - Ley 1581 de 2012</button>
+  </footer>
+
+  <!-- Privacy Modal -->
+  <div class="modal-overlay" *ngIf="showPrivacyModal" (click)="showPrivacyModal = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Politica de Proteccion de Datos Personales</h2>
+        <button class="modal-close" (click)="showPrivacyModal = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h3>1. Responsable del Tratamiento</h3>
+        <p>La presente herramienta digital es un instrumento de apoyo administrativo para el Servicio Nacional de Aprendizaje - SENA, utilizada por funcionarios y contratistas autorizados del Centro de Formacion CAFEC para la generacion de formatos institucionales de matricula.</p>
+        <p>El SENA, como entidad publica del orden nacional adscrita al Ministerio del Trabajo, actua como responsable del tratamiento de datos personales de sus aprendices en cumplimiento de sus funciones legales y misionales establecidas en la Ley 119 de 1994.</p>
+
+        <h3>2. Marco Legal</h3>
+        <p>Esta herramienta opera en cumplimiento de la Constitucion Politica de Colombia (Articulo 15 - derecho a la intimidad y habeas data), la Ley Estatutaria 1581 de 2012 "Por la cual se dictan disposiciones generales para la proteccion de datos personales", el Decreto Reglamentario 1377 de 2013 (compilado en el Decreto 1074 de 2015), la Ley 119 de 1994 (restructuracion del SENA), y demas normatividad vigente aplicable en materia de proteccion de datos personales en Colombia.</p>
+
+        <h3>3. Legitimidad de la Recoleccion de Datos - El Archivo Excel</h3>
+        <p>Los datos personales contenidos en el archivo Excel que se carga en esta herramienta son recolectados directamente por los instructores y funcionarios del SENA a los aprendices y/o a sus padres, madres o acudientes (en caso de menores de edad) como parte del proceso institucional de matricula. <strong>Esta recoleccion es legitima</strong> por las siguientes razones:</p>
+        <ul>
+          <li><strong>Base legal (Art. 10, literal a, Ley 1581/2012):</strong> El SENA esta autorizado por ley para recolectar datos personales de sus aprendices en ejercicio de sus funciones como entidad publica encargada de la formacion profesional en Colombia. El proceso de matricula es un acto administrativo que requiere la identificacion plena del aprendiz.</li>
+          <li><strong>Finalidad contractual:</strong> La relacion entre el aprendiz y el SENA se formaliza a traves del Contrato de Aprendizaje o el Compromiso del Aprendiz, documentos que requieren datos de identificacion y contacto para su diligenciamiento.</li>
+          <li><strong>Consentimiento informado:</strong> Precisamente uno de los documentos que esta herramienta genera es el <strong>Formato de Autorizacion de Tratamiento de Datos Personales</strong>, el cual debe ser firmado por el aprendiz (o su acudiente si es menor de edad) antes o durante el proceso de matricula. Este formato constituye la evidencia del consentimiento previo, expreso e informado exigido por la Ley 1581 de 2012.</li>
+          <li><strong>Principio de necesidad:</strong> Los datos solicitados son estrictamente los necesarios para diligenciar los formatos institucionales del SENA. No se recolectan datos adicionales ni se solicita informacion que exceda la finalidad del proceso de matricula.</li>
+        </ul>
+        <p><strong>En resumen:</strong> el instructor recolecta los datos porque el SENA lo requiere para la matricula (obligacion legal e institucional), los aprendices y acudientes los entregan voluntariamente como parte de dicho proceso, y el formato de autorizacion de tratamiento de datos que genera esta misma herramienta es el documento que formaliza y evidencia el consentimiento.</p>
+
+        <h3>4. Flujo Completo del Tratamiento de Datos</h3>
+        <p>El tratamiento de datos personales en este proceso sigue el siguiente flujo, disenado para cumplir con la Ley 1581 de 2012 en cada etapa:</p>
+        <ul>
+          <li><strong>Paso 1 - Recoleccion:</strong> El instructor del SENA solicita a los aprendices y/o acudientes los datos necesarios para la matricula (nombre, documento, contacto, etc.). Esta informacion se registra en un archivo Excel.</li>
+          <li><strong>Paso 2 - Custodia del Excel:</strong> El archivo Excel es responsabilidad del instructor y debe ser almacenado de forma segura en equipos institucionales o con medidas de proteccion adecuadas (contrasena, cifrado). No debe compartirse por canales no autorizados (WhatsApp personal, correos no institucionales, USB sin proteccion).</li>
+          <li><strong>Paso 3 - Procesamiento local:</strong> El instructor carga el Excel en esta herramienta. Los datos se procesan <strong>unicamente en el navegador</strong> del instructor, sin enviarse a ningun servidor. La herramienta genera los formatos de Compromiso del Aprendiz y Autorizacion de Tratamiento de Datos.</li>
+          <li><strong>Paso 4 - Firma de documentos:</strong> Los formatos generados se imprimen y son firmados por cada aprendiz (y su acudiente, si es menor de edad). La firma del formato de Autorizacion de Tratamiento de Datos constituye el consentimiento legal para el uso de sus datos personales.</li>
+          <li><strong>Paso 5 - Archivo:</strong> Los documentos firmados se archivan conforme a las politicas documentales del SENA. El archivo Excel puede ser eliminado una vez generados y firmados todos los formatos, ya que la herramienta no almacena ni requiere conservar los datos.</li>
+        </ul>
+
+        <h3>5. Naturaleza del Procesamiento - Procesamiento 100% Local</h3>
+        <p>Esta herramienta ha sido disenada bajo el principio de minimizacion del tratamiento de datos personales. <strong>No es una aplicacion que recolecta datos</strong> — es una herramienta que procesa localmente datos ya recolectados legitimamente por el SENA. Su arquitectura tecnica garantiza que:</p>
+        <ul>
+          <li><strong>No se envian datos a ningun servidor:</strong> Toda la informacion contenida en el archivo Excel cargado por el usuario se procesa exclusivamente en la memoria del navegador web (lado del cliente). En ningun momento los datos son transmitidos, enviados o almacenados en servidores remotos, bases de datos en la nube, ni en ningun sistema de almacenamiento externo.</li>
+          <li><strong>No existe almacenamiento persistente:</strong> Los datos cargados residen unicamente en la memoria volatil (RAM) del navegador durante la sesion activa. Al cerrar la pestana, actualizar la pagina o cerrar el navegador, todos los datos se eliminan automatica e irrecuperablemente.</li>
+          <li><strong>No se utilizan cookies de rastreo:</strong> La herramienta no emplea cookies, almacenamiento local (localStorage), almacenamiento de sesion (sessionStorage), ni cualquier otro mecanismo de persistencia de datos en el dispositivo del usuario.</li>
+          <li><strong>No se realizan transferencias internacionales:</strong> Dado que los datos no salen del navegador del usuario, no se realizan transferencias ni transmisiones internacionales de datos personales en los terminos del Titulo VII de la Ley 1581 de 2012.</li>
+          <li><strong>No se comparten datos con terceros:</strong> Ningun dato personal es compartido, vendido, cedido ni puesto a disposicion de terceros, sean personas naturales o juridicas, publicas o privadas. El servicio de hosting (Firebase de Google) unicamente aloja los archivos de la aplicacion (codigo HTML, CSS, JavaScript y plantillas Word), pero <strong>nunca recibe ni tiene acceso a los datos personales</strong> de los aprendices.</li>
+        </ul>
+
+        <h3>6. Finalidad del Tratamiento</h3>
+        <p>La unica finalidad del procesamiento local de datos es la generacion automatizada de los siguientes documentos institucionales del SENA:</p>
+        <ul>
+          <li>Formato de Compromiso del Aprendiz</li>
+          <li>Formato de Autorizacion de Tratamiento de Datos Personales de Menores de Edad</li>
+        </ul>
+        <p>Estos documentos son requeridos como parte del proceso de matricula establecido por el SENA. Esta herramienta <strong>no reemplaza ni modifica</strong> ningun proceso institucional del SENA; unicamente agiliza el diligenciamiento de formatos que de otro modo se realizaria manualmente, campo por campo, para cada aprendiz.</p>
+
+        <h3>7. Tipos de Datos Tratados</h3>
+        <p>Los datos procesados localmente corresponden a informacion estrictamente necesaria para el diligenciamiento de los formatos institucionales:</p>
+        <ul>
+          <li><strong>Datos de identificacion del aprendiz:</strong> nombre completo, tipo y numero de documento de identidad</li>
+          <li><strong>Datos de contacto:</strong> correo electronico, numeros de telefono, direccion de residencia</li>
+          <li><strong>Datos academicos:</strong> numero de ficha, programa de formacion, centro y regional</li>
+          <li><strong>Datos del acudiente o representante legal</strong> (en caso de menores de edad): nombre completo, tipo y numero de documento, lugar de expedicion</li>
+        </ul>
+        <p>No se tratan datos sensibles en los terminos del articulo 5 de la Ley 1581 de 2012 (origen racial o etnico, orientacion politica, convicciones religiosas, datos biometricos, datos de salud, orientacion sexual, entre otros). Tampoco se solicitan fotografias, datos financieros, ni cualquier informacion que exceda lo necesario para los formatos institucionales.</p>
+
+        <h3>8. Tratamiento de Datos de Menores de Edad</h3>
+        <p>De conformidad con el articulo 7 de la Ley 1581 de 2012 y la Sentencia C-748 de 2011 de la Corte Constitucional, el tratamiento de datos de menores de edad requiere el consentimiento del representante legal. En este proceso:</p>
+        <ul>
+          <li>Los datos de menores de edad (identificados con Tarjeta de Identidad - TI) son suministrados directamente por sus padres, madres o acudientes al instructor del SENA durante el proceso de matricula.</li>
+          <li>Esta herramienta genera el <strong>Formato de Autorizacion de Tratamiento de Datos Personales de Menores</strong>, el cual debe ser firmado por el padre, madre o acudiente del menor como constancia de su consentimiento previo, expreso e informado.</li>
+          <li>El instructor debe asegurarse de que este formato sea firmado antes de proceder con la matricula del menor.</li>
+        </ul>
+
+        <h3>9. Principios Aplicados</h3>
+        <p>El diseno y operacion de esta herramienta se rige por los principios establecidos en el articulo 4 de la Ley 1581 de 2012:</p>
+        <ul>
+          <li><strong>Principio de legalidad:</strong> El tratamiento se realiza conforme a la ley y para fines legitimos del SENA como entidad publica.</li>
+          <li><strong>Principio de finalidad:</strong> Los datos se procesan con la finalidad exclusiva de generar documentos institucionales requeridos para la matricula.</li>
+          <li><strong>Principio de libertad:</strong> Los aprendices y acudientes suministran sus datos voluntariamente y firman la autorizacion de tratamiento.</li>
+          <li><strong>Principio de veracidad:</strong> La informacion procesada corresponde a datos reales suministrados directamente por los titulares.</li>
+          <li><strong>Principio de transparencia:</strong> Esta politica informa de manera clara y completa sobre el tratamiento de datos. El titular tiene derecho a conocer la existencia del tratamiento en cualquier momento.</li>
+          <li><strong>Principio de acceso y circulacion restringida:</strong> Solo el instructor o funcionario autorizado que opera la herramienta tiene acceso a los datos durante la sesion. Los datos no circulan por ningun servidor ni red.</li>
+          <li><strong>Principio de seguridad:</strong> El procesamiento local garantiza que los datos no estan expuestos a vulnerabilidades de red, servidores o bases de datos.</li>
+          <li><strong>Principio de confidencialidad:</strong> Los datos no son accesibles por terceros en ningun momento del proceso.</li>
+        </ul>
+
+        <h3>10. Medidas de Seguridad Tecnicas</h3>
+        <ul>
+          <li>Procesamiento exclusivo en el navegador del usuario (arquitectura 100% client-side)</li>
+          <li>Conexion cifrada mediante protocolo HTTPS/TLS para la carga de la aplicacion</li>
+          <li>Ausencia total de endpoints, APIs o servicios de backend que reciban datos personales</li>
+          <li>Ausencia total de bases de datos, cuentas de usuario o sistemas de autenticacion</li>
+          <li>Eliminacion automatica de datos al cerrar la sesion del navegador</li>
+          <li>Sin mecanismos de persistencia local (cookies, localStorage, IndexedDB, Service Workers con cache de datos)</li>
+          <li>Codigo fuente abierto a revision por parte de las areas de seguridad informatica del SENA</li>
+        </ul>
+
+        <h3>11. Derechos de los Titulares</h3>
+        <p>De conformidad con el articulo 8 de la Ley 1581 de 2012, los titulares de los datos personales tienen derecho a conocer, actualizar, rectificar y solicitar la supresion de sus datos. Dado que esta herramienta <strong>no almacena datos</strong>, no existe informacion que suprimir dentro de la aplicacion. Los derechos ARCO (Acceso, Rectificacion, Cancelacion y Oposicion) se ejercen directamente ante el SENA como responsable del tratamiento, a traves de los canales institucionales:</p>
+        <ul>
+          <li>Portal web: www.sena.edu.co</li>
+          <li>Linea de atencion: 018000 910 270</li>
+          <li>Sistema PQRS: www.sena.edu.co/servicioalciudadano/PQRS</li>
+        </ul>
+
+        <h3>12. Responsabilidad del Instructor u Operador</h3>
+        <p>El instructor, funcionario o contratista del SENA que utiliza esta herramienta actua como <strong>encargado del tratamiento</strong> en los terminos de la Ley 1581 de 2012, y es responsable de:</p>
+        <ul>
+          <li>Recolectar los datos personales de los aprendices y acudientes de manera presencial, informando la finalidad del tratamiento (diligenciamiento de formatos de matricula del SENA).</li>
+          <li>Garantizar que los datos han sido suministrados voluntariamente por los titulares o sus representantes legales.</li>
+          <li>Custodiar adecuadamente el archivo Excel fuente: almacenarlo en equipos institucionales o con proteccion por contrasena, no compartirlo por canales no autorizados (WhatsApp personal, correos no institucionales, memorias USB sin cifrado).</li>
+          <li>Asegurar que los documentos generados sean impresos, firmados y archivados conforme a las politicas documentales del SENA.</li>
+          <li>Eliminar el archivo Excel una vez generados y archivados todos los formatos firmados, o en su defecto, conservarlo unicamente en medios seguros por el tiempo estrictamente necesario.</li>
+          <li>No compartir ni distribuir los documentos generados por canales no autorizados.</li>
+          <li>Si un aprendiz o acudiente solicita la eliminacion de sus datos del archivo Excel, atender la solicitud de forma oportuna.</li>
+        </ul>
+
+        <h3>13. Vigencia</h3>
+        <p>La presente politica de proteccion de datos personales se encuentra vigente desde la fecha de publicacion de la herramienta y sera actualizada cuando se presenten cambios normativos, tecnicos u operativos que asi lo requieran.</p>
+
+        <div class="modal-footer-text">
+          <p><strong>Servicio Nacional de Aprendizaje - SENA</strong></p>
+          <p>Centro de Formacion CAFEC</p>
+          <p>Herramienta de apoyo administrativo para generacion de formatos de matricula</p>
+          <p>Esta herramienta no almacena, transmite ni comparte datos personales.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-overlay" *ngIf="generating">
+    <div class="progress-box">
+      <div class="spinner"></div>
+      <p>Generando documentos...</p>
+      <div class="progress-bar" *ngIf="progressTotal > 1">
+        <div class="progress-fill" [style.width.%]="progressPercent"></div>
+      </div>
+      <span class="progress-text" *ngIf="progressTotal > 1">{{ progressCurrent }} / {{ progressTotal }} estudiantes</span>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,38 @@
+@import 'driver.js/dist/driver.css';
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.driver-popover.sena-tour {
+  .driver-popover-title {
+    font-size: 16px;
+    color: #1a1a2e;
+  }
+  .driver-popover-description {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #4b5563;
+  }
+  .driver-popover-progress-text {
+    font-size: 11px;
+    color: #9ca3af;
+  }
+  .driver-popover-prev-btn {
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    &:hover { background: #f9fafb; }
+  }
+  .driver-popover-next-btn,
+  .driver-popover-close-btn {
+    background: #39A900;
+    color: #fff;
+    border: none;
+    text-shadow: none;
+    &:hover { background: #2d8600; }
+  }
+}
